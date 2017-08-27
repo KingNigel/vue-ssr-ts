@@ -1,3 +1,14 @@
 body {
   background-color: aliceblue;
 }
+
+a {
+  border-bottom: 2px solid transparent;
+  color: #20A0FF;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+a:hover {
+  border-color: currentColor;
+}

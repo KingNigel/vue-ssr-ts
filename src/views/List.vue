@@ -1,60 +1,84 @@
 <template>
   <div class="list">
-    <h1 class="list__title">Todo List</h1>
-    <ul class="list__list">
-      <li class="list__item" v-for="todo in todos" :key="todo.title">
-        <el-card class="list__item__card">
-          <div class="list__item__header">
-            <h2 class="list__item__title">{{ todo.title }}</h2>
-            <el-tag class="list__item__tag" type="primary" v-for="tag in todo.tags" :key="tag">
-              {{ tag }}
-            </el-tag>
-          </div>
-          <p class="list__item__content">{{ todo.content }}</p>
-          <div class="list__item__edit" v-if="expired(todo.expired) > 0">
-            <span class="list__item__expired">离过期还有{{ expired(todo.expired) }}天</span>
-            <el-button type="primary">完成</el-button>
-            <el-button type="danger">删除</el-button>
-          </div>
-          <div class="list__item__edit" v-else>
-            <span class="list__item__expired" style="color: #F7BA2A;">事项已过期</span>
-          </div>
-        </el-card>
+    <el-card class="list__empty" v-if="todos.length <= 0">
+      您还未添加任何事项，<router-link to="/add">前往添加</router-link>
+    </el-card>
+    <el-tabs class="list__tabs" v-model="active" v-else>
+      <el-tab-pane label="全部" name="all"></el-tab-pane>
+      <el-tab-pane label="待完成" name="todo"></el-tab-pane>
+      <el-tab-pane label="已完成" name="completed"></el-tab-pane>
+      <el-tab-pane label="已过期" name="expired"></el-tab-pane>
+    </el-tabs>
+    <transition-group class="list__list" name="list" tag="ul">
+      <li class="list__item" v-for="todo in FilteredTodos" :key="todo.title">
+        <todo-item :todo="todo" :daysBeforeExpired="daysBeforeExpired" :isExpired="isExpired"></todo-item>
       </li>
-    </ul>
+    </transition-group>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import Component from 'vue-class-component';
-import { differenceInDays } from 'date-fns'
+import { Component } from 'vue-property-decorator';
+import { differenceInDays } from 'date-fns';
+// eslint-disable-next-line
+import TodoItem from '../components/TodoItem.vue';
 
-@Component({})
-export default class List extends Vue {
-  todos = [];
+@Component({
+  components: { TodoItem }
+})
+class List extends Vue {
+  /* eslint-disable no-undef */
+  active = 'todo';
+  /* eslint-enable */
 
-  expired(date: string) {
+  get todos(): Todo[] {
+    return this.$store.state.todos;
+  }
+
+  get FilteredTodos(): Todo[] {
+    switch (this.active) {
+      case 'todo':
+        return this.todos
+          .filter(({ expired }) => !expired || this.daysBeforeExpired(expired) > 0)
+          .filter(todo => !todo.completed);
+      case 'completed':
+        return this.todos.filter(todo => todo.completed);
+      case 'expired':
+        return this.todos.filter(this.isExpired);
+      case 'all':
+      default:
+        return this.todos;
+    }
+  }
+
+  daysBeforeExpired(date: Date) {
     const today = new Date();
     const target = new Date(date);
     return differenceInDays(target, today);
   }
 
-  created() {
-    fetch('/todo')
-      .then(res => res.json())
-      .then(({ todos }) => {
-        this.todos = todos;
-      });
+  isExpired({ expired }: Todo) {
+    return expired && this.daysBeforeExpired(expired) <= 0;
   }
 }
+
+(List as any).asyncData = ({ store }: any) => store.dispatch('getTodos');
+
+export default List;
 </script>
 
 <style>
-.list__title {
-  margin-bottom: 1.4em;
+.list__empty {
+  width: 30em;
+  margin: 0 auto;
   text-align: center;
-  font-weight: normal;
+}
+
+.list__tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2em;
 }
 
 .list__list {
@@ -70,38 +94,26 @@ export default class List extends Vue {
   flex: none;
   width: 47%;
   margin-bottom: 2em;
+  transition: all 1s;
 }
 
-.list__item__header {
-  display: flex;
+@media screen and (max-width: 800px) {
+  .list__item {
+    flex: 100%;
+  }
 }
 
-.list__item__title {
-  margin: 0 auto 0 0;
-  font-size: 1.25em;
-  font-weight: normal;
+.list-enter,
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(30px);
 }
 
-.list__item__tag {
-  margin-left: 1em;
+.list-leave-to {
+  transition: 0.6s;
 }
 
-.list__item__content {
-  height: 100px;
-  overflow: auto;
-  color: #8492A6;
-  font-size: 0.8125em;
-  line-height: 1.6;
-}
-
-.list__item__edit {
-  display: flex;
-  align-items: center;
-  height: 36px;
-}
-
-.list__item__expired {
-  margin-right: auto;
-  font-size: 0.75em;
+.list-leave-active {
+  position: absolute;
 }
 </style>

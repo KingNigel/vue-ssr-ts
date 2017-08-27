@@ -1,21 +1,20 @@
 import Vue from 'vue';
-import App from './App.vue';
-import router from './routes';
+import { sync } from 'vuex-router-sync';
 import ElementUI from 'element-ui';
-import 'normalize.css';
-import 'element-ui/lib/theme-default/index.css';
-import './style.css';
+import App from './App.vue';
+import router from './router';
+import store from './store';
+
+
+sync(store, router);
 
 Vue.use(ElementUI);
 
-// tslint:disable-next-line
-new Vue({
-  el: '#app',
-  router,
-  render: h => h(App),
-});
-
-declare var module: { hot: { accept: any } };
-if (module.hot) {
-  module.hot.accept();
+export default function createApp() {
+  const app = new Vue({
+    router,
+    store,
+    render: h => h(App),
+  });
+  return { app, router, store };
 }

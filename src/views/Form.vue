@@ -1,10 +1,10 @@
 <template>
   <div class="add" v-loading="loading" element-loading-text="数据提交中">
-    <h1 class="add-title">Add a new todo item</h1>
     <el-form
       class="add-form"
       ref="form"
       label-width="80px"
+      label-position="top"
       :model="form"
       :rules="rules"
       @submit.native.prevent="validate"
@@ -21,16 +21,16 @@
         <el-input v-model="form.tags" placeholder="多个标签用空格隔开，最多可输入三个标签，多出无效"></el-input>
       </el-form-item>
 
-      <el-form-item label="限定日期">
+      <el-form-item label="过期时间">
         <el-date-picker
           v-model="form.expired"
           type="date"
-          placeholder="事项须在此日期前完成"
+          placeholder="不填则无限期"
         ></el-date-picker>
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary" native-type="submit">submit</el-button>
+        <el-button type="primary" native-type="submit">提交事项</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -38,10 +38,11 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import Component from 'vue-class-component';
+import { Component } from 'vue-property-decorator';
 
 @Component({})
 export default class Form extends Vue {
+  /* eslint-disable no-undef */
   form = {
     title: '',
     content: '',
@@ -59,11 +60,16 @@ export default class Form extends Vue {
   };
 
   loading = false;
+  /* eslint-enable */
 
   get formData() {
     return {
       ...this.form,
-      tags: this.form.tags.split(' ').slice(0, 3),
+      tags: this.form.tags
+        .trim()
+        .split(' ')
+        .filter(tag => tag !== '')
+        .slice(0, 3),
     };
   }
 
@@ -77,27 +83,19 @@ export default class Form extends Vue {
 
   submit() {
     this.loading = true;
-    fetch('/todo', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(this.formData),
-    }).then(() => {
-      this.loading = false;
-      this.$router.push('/list');
-    });
+    this.$store.dispatch('addTodo', JSON.stringify(this.formData))
+      .then(() => {
+        this.loading = false;
+        this.$router.push('/list');
+      });
   }
 }
 </script>
 
 <style>
-.add-title {
-  text-align: center;
-  font-weight: normal;
-  text-transform: uppercase;
-}
-
 .add-form {
   width: 500px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 2.6em auto 0;
 }
 </style>

@@ -1,56 +1,38 @@
-const { promisify } = require('util');
-const fs = require('fs');
 const Koa = require('koa');
+const router = require('koa-router')();
 const bodyParser = require('koa-bodyparser');
-const send = require('koa-send');
-const Router = require('koa-router');
-const webpack = require('webpack');
-const { devMiddleware, hotMiddleware } = require('koa-webpack-middleware');
-const config = require('./webpack.config');
+const serve = require('koa-static');
+const mongoose = require('mongoose');
+const { getTodos, addTodo, patchTodo, removeTodo } = require('./controller/todo');
+const { ssr } = require('./controller/ssr');
 
 const app = new Koa();
-const router = new Router();
 
-const compiler = webpack(config);
-app.use(devMiddleware(compiler, {
-  publicPath: config.output.publicPath,
-  historyApiFallback: true,
-  stats: 'minimal',
-}));
-app.use(hotMiddleware(compiler));
+mongoose.Promise = global.Promise;
+mongoose.connect('mongodb://admin:123456@ds034677.mlab.com:34677/todo', { useMongoClient: true })
+  .then(() => global.console.log('Connected to database successfully'))
+  .catch(error => global.console.log(error));
 
-app.use(bodyParser())
 
-const getData = () => JSON.parse(fs.readFileSync('data.json', 'utf8'));
+if (process.env.NODE_ENV !== 'production') {
+  /* eslint-disable global-require */
+  const { devMiddleware, hotMiddleware } = require('./build/middleware');
+  app
+    .use(devMiddleware)
+    .use(hotMiddleware);
+}
 
 router
-  .get('/todo',  async (ctx) => {
-    const { todos } = await getData();
-    ctx.body = JSON.stringify({
-      todos,
-      total: todos.length,
-      ok: true,
-    });
-  })
-
-  .post('/todo', async (ctx) => {
-    const todo = ctx.request.body;
-    const data = await getData();
-    data.todos.push(todo);
-    await promisify(fs.writeFile)('data.json', JSON.stringify(data, null, 2));
-    ctx.body = JSON.stringify({
-      ok: true
-    })
-  })
-
-  .get('*', async (ctx) => {
-    const htmlBuffer = compiler.outputFileSystem.readFileSync(`${config.output.path}/index.html`);
-    ctx.type = 'html';
-    ctx.body = htmlBuffer.toString();
-  });
+  .get('/todo', getTodos)
+  .post('/todo', addTodo)
+  .patch('/todo/:id', patchTodo)
+  .delete('/todo/:id', removeTodo)
+  .get('*', ssr);
 
 app
+  .use(serve('dist'))
+  .use(bodyParser())
   .use(router.routes())
   .use(router.allowedMethods());
 
-app.listen(3000);
+app.listen(process.env.PORT || 3000);
