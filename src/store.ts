@@ -50,7 +50,7 @@ export default new Vuex.Store<{ todos: Todo[] }>({
     },
 
     completeTodo({ commit }, id) {
-      return completeTodo().then(() => commit('completeTodo', id));
+      return completeTodo(id).then(() => commit('completeTodo', id));
     },
 
     removeTodo({ commit }, id) {
