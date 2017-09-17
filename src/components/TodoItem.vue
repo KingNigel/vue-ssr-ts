@@ -9,7 +9,7 @@
     <p class="todo__content">{{ todo.content }}</p>
     <div class="todo__edit">
       <span class="todo__tip" v-html="tipText(todo)"></span>
-      <el-button type="primary" :disabled="isExpired(todo)" @click="complete(todo._id)" v-if="!todo.completed">完成</el-button>
+      <el-button type="primary" @click="complete(todo._id)" v-if="isShowCompleteButton(todo)">完成</el-button>
       <el-button type="danger" @click="remove(todo._id)">删除</el-button>
     </div>
   </el-card>
@@ -18,6 +18,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import Component from 'vue-class-component';
+import { isPast, isFuture, distanceInWords } from 'date-fns';
 
 @Component({
   props: {
@@ -25,6 +26,12 @@ import Component from 'vue-class-component';
   }
 })
 export default class TodoItem extends Vue {
+
+  isShowCompleteButton(todo: Todo) {
+    if (todo.completed) return false;
+    if (todo.expired == null) return true;
+    return isFuture(todo.expired);
+  }
 
   tipText({ expired, completed }: Todo) {
     if (completed) {
@@ -35,12 +42,22 @@ export default class TodoItem extends Vue {
       return '不限期';
     }
 
-    const days = this.daysBeforeExpired(expired);
-    if (days > 0) {
-      return `${days}天后过期`;
+    if (isPast(expired)) {
+      return '<span style="color: #F7BA2A;">事项已过期<span>';
     }
 
-    return '<span style="color: #F7BA2A;">事项已过期<span>';
+    const words = distanceInWords(new Date(), expired)
+      .replace('almost', '将近')
+      .replace(/over(.*)years?/, '$1 年多')
+      .replace('about', '大约')
+      .replace('less than', '不到')
+      .replace(/minutes?/, '分钟')
+      .replace(/hours?/, '小时')
+      .replace(/days?/, '天')
+      .replace(/months?/, '个月')
+      .replace(/years?/, '年')
+      .replace(/\s/g, '');
+    return `${words}后过期`;
   }
 
   complete(id: string) {

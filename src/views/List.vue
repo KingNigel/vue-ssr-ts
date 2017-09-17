@@ -11,7 +11,7 @@
     </el-tabs>
     <transition-group class="list__list" name="list" tag="ul">
       <li class="list__item" v-for="todo in FilteredTodos" :key="todo.title">
-        <todo-item :todo="todo" :daysBeforeExpired="daysBeforeExpired" :isExpired="isExpired"></todo-item>
+        <todo-item :todo="todo"></todo-item>
       </li>
     </transition-group>
   </div>
@@ -20,7 +20,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import Component from 'vue-class-component';
-import { differenceInDays } from 'date-fns';
+import { isPast, isFuture } from 'date-fns';
 // eslint-disable-next-line
 import TodoItem from '../components/TodoItem.vue';
 
@@ -40,26 +40,21 @@ class List extends Vue {
     switch (this.active) {
       case 'todo':
         return this.todos
-          .filter(({ expired }) => !expired || this.daysBeforeExpired(expired) > 0)
+          .filter(({ expired }) => !expired || isFuture(expired))
           .filter(todo => !todo.completed);
+
       case 'completed':
-        return this.todos.filter(todo => todo.completed);
+        return this.todos
+          .filter(todo => todo.completed);
+
       case 'expired':
-        return this.todos.filter(this.isExpired);
+        return this.todos
+          .filter(({ expired }) => expired && isPast(expired));
+
       case 'all':
       default:
         return this.todos;
     }
-  }
-
-  daysBeforeExpired(date: Date) {
-    const today = new Date();
-    const target = new Date(date);
-    return differenceInDays(target, today);
-  }
-
-  isExpired({ expired }: Todo) {
-    return expired && this.daysBeforeExpired(expired) <= 0;
   }
 }
 
