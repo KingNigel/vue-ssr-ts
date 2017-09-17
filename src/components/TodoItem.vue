@@ -17,20 +17,14 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import Component from 'vue-class-component';
 
-@Component({})
+@Component({
+  props: {
+    todo: Object
+  }
+})
 export default class TodoItem extends Vue {
-  /* eslint-disable no-undef */
-  @Prop([Object])
-  todo: Todo
-
-  @Prop([Function])
-  daysBeforeExpired: (date: Date) => number
-
-  @Prop([Function])
-  isExpired: (date: Date) => boolean
-  /* eslint-enable */
 
   tipText({ expired, completed }: Todo) {
     if (completed) {

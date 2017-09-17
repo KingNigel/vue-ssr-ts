@@ -19,7 +19,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import Component from 'vue-class-component';
 import { differenceInDays } from 'date-fns';
 // eslint-disable-next-line
 import TodoItem from '../components/TodoItem.vue';
