@@ -21,11 +21,12 @@ exports.addTodo = async (ctx) => {
 };
 
 exports.patchTodo = async (ctx) => {
+  const { body: update } = ctx.request;
   const todo = await Todo
-    .findOneAndUpdate(ctx.params.id, ctx.request.body);
+    .findByIdAndUpdate(ctx.params.id, update);
   ctx.type = 'json';
   ctx.body = {
-    todo,
+    todo: Object.assign(todo, update),
     ok: true,
   };
 };
