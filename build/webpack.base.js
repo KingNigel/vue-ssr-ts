@@ -13,16 +13,29 @@ module.exports = {
         test: /\.vue$/,
         loader: 'vue-loader',
         options: {
+          loaders: {
+            ts: 'babel-loader!ts-loader',
+          },
           extractCSS: process.env.NODE_ENV === 'production',
         },
       },
       {
         test: /\.ts$/,
-        loader: 'ts-loader',
+        use: [
+          'babel-loader',
+          {
+            loader: 'ts-loader',
+            options: {
+              appendTsSuffixTo: [/\.vue$/],
+            },
+          },
+        ],
         exclude: /node_modules/,
-        options: {
-          appendTsSuffixTo: [/\.vue$/],
-        },
+      },
+      {
+        test: /\.js/,
+        loader: 'babel-loader',
+        exclude: /node_modules/,
       },
     ],
   },

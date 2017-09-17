@@ -3,6 +3,8 @@ const webpack = require('webpack');
 const baseConfig = require('./webpack.base');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
+const isProd = process.env.NODE_ENV === 'production';
+
 module.exports = Object.assign({}, baseConfig, {
   entry: [
     'webpack-hot-middleware/client?noInfo=true',
@@ -12,6 +14,16 @@ module.exports = Object.assign({}, baseConfig, {
   module: {
     rules: [
       ...baseConfig.module.rules,
+      (isProd ? {
+        test: /\.css$/,
+        loader: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: 'css-loader',
+        }),
+      } : {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      }),
       {
         test: /\.(eot|svg|ttf|woff|woff2)(\?\S*)?$/,
         loader: 'file-loader',
@@ -26,7 +38,7 @@ module.exports = Object.assign({}, baseConfig, {
   ],
 });
 
-if (process.env.NODE_ENV === 'production') {
+if (isProd) {
   module.exports.entry = [path.resolve(__dirname, '../src/entry-client.ts')];
 
   module.exports.devtool = '#source-map';

@@ -19,10 +19,6 @@ export default class App extends Vue {}
 </script>
 
 <style>
-@import '../node_modules/normalize.css/normalize.css';
-@import '../node_modules/element-ui/lib/theme-default/index.css';
-@import './style.css';
-
 .app {
   max-width: 800px;
   min-height: 100vh;
