@@ -50,14 +50,12 @@ if (isProd) {
       },
     }),
     new ExtractTextPlugin('app.css'),
+    new webpack.NoEmitOnErrorsPlugin(),
     new webpack.optimize.UglifyJsPlugin({
       sourceMap: true,
       compress: {
         warnings: false,
       },
-    }),
-    new webpack.LoaderOptionsPlugin({
-      minimize: true,
     }),
   ]);
 }

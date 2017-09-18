@@ -20,7 +20,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import Component from 'vue-class-component';
-import { isPast, isFuture } from 'date-fns';
+import isPast from 'date-fns/is_past';
+import isFuture from 'date-fns/is_future';
 // eslint-disable-next-line
 import TodoItem from '../components/TodoItem.vue';
 

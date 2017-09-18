@@ -18,7 +18,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import Component from 'vue-class-component';
-import { isPast, isFuture, distanceInWords } from 'date-fns';
+import isPast from 'date-fns/is_past';
+import isFuture from 'date-fns/is_future';
+import distanceInWords from 'date-fns/distance_in_words';
 
 @Component({
   props: {
