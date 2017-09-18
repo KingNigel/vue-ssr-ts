@@ -8,7 +8,7 @@ export default (context: any) =>
     router.onReady(() => {
       const matchedComponents = router.getMatchedComponents();
       if (!matchedComponents.length) {
-        return reject({ code: 404 });
+        return reject(new Error('code: 404'));
       }
 
       return Promise.all(
